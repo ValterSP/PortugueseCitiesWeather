@@ -33,6 +33,16 @@ app.get('/api/weather/:city', (req, res) => {
     }
     axios.get(`http://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=${apiKey}`)
         .then(response => {
+            response.data.list.forEach(element => {
+                element.main.temp = Math.round(element.main.temp - 273.15);
+                element.main.feels_like = Math.round(element.main.feels_like - 273.15);
+                element.main.temp_min = Math.round(element.main.temp_min - 273.15);
+                element.main.temp_max = Math.round(element.main.temp_max - 273.15);
+                element.day = parseInt(new Date(element.dt * 1000).toLocaleDateString('pt-PT', {day: '2-digit'}));
+                element.weekday = new Date(element.dt * 1000).toLocaleDateString('pt-PT', {weekday: 'long'});
+                element.hour = new Date(element.dt * 1000).toLocaleString('pt-PT', {hour: '2-digit', minute: '2-digit', hour12: false});
+                delete element.main.temp_kf;
+            });
             weatherCache.set(cityId, {timestamp: Date.now(), data: response.data});
             res.send(response.data.list);
         })
