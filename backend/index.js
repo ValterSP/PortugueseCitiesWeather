@@ -1,5 +1,6 @@
 const express = require('express');
 require('dotenv').config();
+const cors = require('cors');
 const axios = require('axios');
 const app = express();
 const port = 3000;
@@ -7,6 +8,8 @@ const port = 3000;
 const citiesMap = new Map();
 const apiKey = process.env.API_KEY;
 const weatherCache = new Map();
+
+app.use(cors( {origin: 'http://localhost:8080'} ));
 
 citiesMap.set('leiria', 2267094);
 citiesMap.set('lisboa', 2267056);
@@ -33,13 +36,17 @@ app.get('/api/weather/:city', (req, res) => {
     }
     axios.get(`http://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=${apiKey}`)
         .then(response => {
+            if (response.data.cod !== '200') {
+                res.status(500).send(response.data.message);
+                return;
+            }
             response.data.list.forEach(element => {
                 element.main.temp = Math.round(element.main.temp - 273.15);
                 element.main.feels_like = Math.round(element.main.feels_like - 273.15);
                 element.main.temp_min = Math.round(element.main.temp_min - 273.15);
                 element.main.temp_max = Math.round(element.main.temp_max - 273.15);
                 element.day = parseInt(new Date(element.dt * 1000).toLocaleDateString('pt-PT', {day: '2-digit'}));
-                element.weekday = new Date(element.dt * 1000).toLocaleDateString('pt-PT', {weekday: 'long'});
+                element.weekday = new Date(element.dt * 1000).toLocaleDateString('en-US', {weekday: 'long'});
                 element.hour = new Date(element.dt * 1000).toLocaleString('pt-PT', {hour: '2-digit', minute: '2-digit', hour12: false});
                 delete element.main.temp_kf;
             });
