@@ -12,6 +12,10 @@
           <span v-else-if="item === tomorrow"> (Tomorrow)</span>
         </option>
       </select>
+      <div class="temp-summary" v-if="filteredWeatherList.length">
+        <p class="temp-text max-temp">Max: {{ maxTemp }}°C</p>
+        <p class="temp-text min-temp">Min: {{ minTemp }}°C</p>
+      </div>
       <div v-if="filteredWeatherList.length" class="weather-list">
         <div v-for="item in filteredWeatherList" :key="item.dt" class="weather-widget">
           <WeatherWidget 
@@ -28,8 +32,6 @@
     </div>
   </div>
 </template>
-
-
 
 <script>
 import axios from "axios";
@@ -54,6 +56,12 @@ export default {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       return tomorrow.toLocaleDateString('en-US', options);
+    },
+    maxTemp() {
+      return this.filteredWeatherList.length ? Math.max(...this.filteredWeatherList.map(item => item.main.temp_max)) : 'N/A';
+    },
+    minTemp() {
+      return this.filteredWeatherList.length ? Math.min(...this.filteredWeatherList.map(item => item.main.temp_min)) : 'N/A';
     }
   },
   data() {
@@ -95,8 +103,6 @@ export default {
 };
 </script>
 
-
-
 <style scoped>
 .page-container {
   display: flex;
@@ -128,7 +134,7 @@ export default {
   display: block;
   width: 100%;
   padding: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   font-size: 1.2em;
   border-radius: 5px;
   border: none;
@@ -142,11 +148,37 @@ export default {
   color: white;
 }
 
+.temp-summary {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Space between the temperatures */
+  margin-bottom: 5px;
+}
+
+.temp-text {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin: 0; /* Remove default margin */
+}
+
+.max-temp {
+  color: #e67e22;
+  text-shadow: 1px 1px 1px rgb(18, 20, 26);
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.min-temp {
+  color: #bbf7ff;
+  text-shadow: 1px 1px 1px rgb(18, 20, 26);
+  font-weight: bold;
+  font-size: 1.2em;
+}
 .weather-list {
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
   gap: 15px;
-  padding: 10px 0;
+  padding: 5px 0;
 }
 </style>
