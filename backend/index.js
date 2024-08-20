@@ -19,6 +19,7 @@ citiesMap.set('coimbra', 2740636);
 
 const minutes = 30;
 const milliseconds = minutes * 60 * 1000;
+const uniqueWeekdays = new Set();
 
 app.get('/api/weather/:city', (req, res) => {
     const city = req.params.city.toLowerCase();
@@ -30,7 +31,7 @@ app.get('/api/weather/:city', (req, res) => {
     if (weatherCache.has(cityId)) {
         const cachedWeather = weatherCache.get(cityId);
         if (cachedWeather.timestamp + milliseconds > Date.now()) {
-            res.send(cachedWeather.data.list);
+            res.send(cachedWeather.data);
             return;
         }
     }
@@ -49,13 +50,13 @@ app.get('/api/weather/:city', (req, res) => {
                 element.weekday = new Date(element.dt * 1000).toLocaleDateString('en-US', {weekday: 'long'});
                 element.hour = new Date(element.dt * 1000).toLocaleString('pt-PT', {hour: '2-digit', minute: '2-digit', hour12: false});
                 delete element.main.temp_kf;
+                delete element.dt_txt;
+                uniqueWeekdays.add(element.weekday);
             });
+            response.data.uniqueWeekdays = Array.from(uniqueWeekdays);   
             weatherCache.set(cityId, {timestamp: Date.now(), data: response.data});
-            res.send(response.data.list);
+            res.send(response.data);
         })
-        .catch(error => {
-            res.status(500).send(error);
-        });
 });
 
 app.listen(port, () => {
