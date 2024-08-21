@@ -1,5 +1,8 @@
 <template>
-  <div class="page-container">
+  <div v-if="error">
+      <p class="error-message">{{ error }}</p>
+  </div>
+  <div v-else-if="weatherList.length" class="page-container">
     <div class="weather-container">
       <h1 class="header">{{ cityComputed }} Weather</h1>
       <select v-model="selectedDay" class="day-selector">
@@ -70,6 +73,7 @@ export default {
       filteredWeatherList: [],   // Lista filtrada para exibição
       weekdayList: [],           // Lista de dias da semana
       selectedDay: '',           // Dia selecionado no dropdown
+      error: null
     };
   },
   watch: {
@@ -83,11 +87,18 @@ export default {
   },
   methods: {
     async getWeather() {
-      const response = await axios.get(
+      try {
+        this.error = null;
+        const response = await axios.get(
         `http://localhost:3000/api/weather/${this.city}`
-      );
-      this.weatherList = response.data.list;  // Armazena todos os dados recebidos
-      this.weekdayList = response.data.uniqueWeekdays;
+        );
+        this.weatherList = response.data.list;  // Armazena todos os dados recebidos
+        this.weekdayList = response.data.uniqueWeekdays;
+        
+      } catch (error) {
+        console.error(error);
+        this.error = error.message + ": " + error.response?.data; 
+      }
       
       // Define o dia selecionado como "Hoje"
       this.selectedDay = this.today;
@@ -180,5 +191,9 @@ export default {
   overflow-x: auto;
   gap: 15px;
   padding: 5px 0;
+}
+.error-message {
+  color: red;
+  font-weight: bold;
 }
 </style>
